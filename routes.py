@@ -10,50 +10,51 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-@main.route('/api/transactions', methods=['GET'])
+@main.route('/api/transactions', methods=['GET', 'POST', 'DELETE'])
 @login_required
-def get_transactions():
-    transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).all()
-    return jsonify([t.to_dict() for t in transactions])
+def transactions():
+    if request.method == 'GET':
+        transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).all()
+        return jsonify([t.to_dict() for t in transactions])
+    elif request.method == 'POST':
+        data = request.json
+        new_transaction = Transaction(
+            date=data['date'],
+            name=data['name'],
+            amount=data['amount'],
+            user_id=current_user.id
+        )
+        db.session.add(new_transaction)
+        db.session.commit()
+        return jsonify(new_transaction.to_dict()), 201
+    elif request.method == 'DELETE':
+        try:
+            Transaction.query.filter_by(user_id=current_user.id).delete()
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error clearing transactions: {str(e)}")
+            return jsonify({'error': str(e)}), 500
 
-@main.route('/api/transactions', methods=['POST'])
+@main.route('/api/transactions/<int:id>', methods=['PUT', 'DELETE'])
 @login_required
-def add_transaction():
-    data = request.json
-    new_transaction = Transaction(
-        date=data['date'],
-        name=data['name'],
-        amount=data['amount'],
-        user_id=current_user.id
-    )
-    db.session.add(new_transaction)
-    db.session.commit()
-    return jsonify(new_transaction.to_dict()), 201
-
-@main.route('/api/transactions/<int:id>', methods=['PUT'])
-@login_required
-def update_transaction(id):
+def transaction(id):
     transaction = Transaction.query.get_or_404(id)
     if transaction.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     
-    data = request.json
-    transaction.date = data['date']
-    transaction.name = data['name']
-    transaction.amount = data['amount']
-    db.session.commit()
-    return jsonify(transaction.to_dict())
-
-@main.route('/api/transactions/<int:id>', methods=['DELETE'])
-@login_required
-def delete_transaction(id):
-    transaction = Transaction.query.get_or_404(id)
-    if transaction.user_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    db.session.delete(transaction)
-    db.session.commit()
-    return '', 204
+    if request.method == 'PUT':
+        data = request.json
+        transaction.date = data['date']
+        transaction.name = data['name']
+        transaction.amount = data['amount']
+        db.session.commit()
+        return jsonify(transaction.to_dict())
+    elif request.method == 'DELETE':
+        db.session.delete(transaction)
+        db.session.commit()
+        return '', 204
 
 @main.route('/api/transactions/bulk', methods=['POST'])
 @login_required
@@ -69,15 +70,3 @@ def bulk_import_transactions():
         db.session.add(new_transaction)
     db.session.commit()
     return jsonify({'message': 'Transactions imported successfully'}), 201
-
-@main.route('/api/transactions', methods=['DELETE'])
-@login_required
-def clear_transactions():
-    try:
-        Transaction.query.filter_by(user_id=current_user.id).delete()
-        db.session.commit()
-        return '', 204
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error clearing transactions: {str(e)}")
-        return jsonify({'error': str(e)}), 500
