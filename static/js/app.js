@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM fully loaded and parsed');
+    console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+
     const transactionList = document.getElementById('transaction-list');
     const transactionForm = document.getElementById('transaction-form');
     const dateInput = document.getElementById('date');
@@ -158,6 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'application/json';
+        input.webkitdirectory = true;
+        input.directory = '/Downloads';
         input.onchange = (event) => {
             const file = event.target.files[0];
             const reader = new FileReader();
@@ -192,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update chart
     function updateChart(groupedTransactions) {
+        console.log('Updating chart with data:', groupedTransactions);
         const dates = Object.keys(groupedTransactions);
         const amounts = dates.map(date => 
             groupedTransactions[date].reduce((sum, transaction) => sum + transaction.amount, 0)
@@ -207,7 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initChart(dates, amounts) {
-        const ctx = document.getElementById('spending-chart').getContext('2d');
+        console.log('Initializing chart with dates:', dates, 'and amounts:', amounts);
+        const canvas = document.getElementById('spending-chart');
+        if (!canvas) {
+            console.error('Spending chart canvas not found');
+            return;
+        }
+        const ctx = canvas.getContext('2d');
         chart = new Chart(ctx, {
             type: 'line',
             data: {
