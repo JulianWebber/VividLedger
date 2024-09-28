@@ -157,37 +157,44 @@ document.addEventListener('DOMContentLoaded', () => {
     loadButton.addEventListener('click', () => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'application/json';
-        input.webkitdirectory = true;
-        input.directory = '/Downloads';
+        input.accept = '.json';
         input.onchange = (event) => {
             const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const transactions = JSON.parse(e.target.result);
-                fetch('/api/transactions/bulk', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(transactions),
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return fetchTransactions();
-                    } else {
-                        throw new Error('Failed to load transactions');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const transactions = JSON.parse(e.target.result);
+                        fetch('/api/transactions/bulk', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(transactions),
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                return fetchTransactions();
+                            } else {
+                                throw new Error('Failed to load transactions');
+                            }
+                        })
+                        .then(() => {
+                            alert('Transactions loaded successfully');
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Failed to load transactions: ' + error.message);
+                        });
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                        alert('Failed to parse the selected file. Please ensure it is a valid JSON file.');
                     }
-                })
-                .then(() => {
-                    alert('Transactions loaded successfully');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to load transactions');
-                });
-            };
-            reader.readAsText(file);
+                };
+                reader.readAsText(file);
+            } else {
+                alert('No file selected. Please select a valid JSON file.');
+            }
         };
         input.click();
     });
