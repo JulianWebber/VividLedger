@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveButton = document.getElementById('save-transactions');
     const loadButton = document.getElementById('load-transactions');
     const spendingChart = document.getElementById('spending-chart');
+    const newButton = document.getElementById('new-transaction');
     let editingId = null;
     let chart = null;
-    let lastUsedDirectory = '';
 
     // Fetch and display transactions
     function fetchTransactions() {
@@ -61,8 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div>
                 <p class="text-green-600 font-bold">$${transaction.amount.toFixed(2)}</p>
-                <button class="btn btn-blue edit-btn" data-id="${transaction.id}">Edit</button>
-                <button class="btn btn-red delete-btn" data-id="${transaction.id}">Delete</button>
+                <button class="btn btn-blue edit-btn" data-id="${transaction.id}">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-red delete-btn" data-id="${transaction.id}">
+                    <i class="fas fa-trash-alt"></i> Delete
+                </button>
             </div>
         `;
         return element;
@@ -98,8 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit transaction
     transactionList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('edit-btn')) {
-            const id = e.target.dataset.id;
+        if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+            const id = e.target.closest('.edit-btn').dataset.id;
             const transactionElement = e.target.closest('div');
             const name = transactionElement.querySelector('p').textContent;
             const amount = transactionElement.querySelector('p:nth-child(2)').textContent.slice(1);
@@ -115,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Delete transaction
     transactionList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn')) {
-            const id = e.target.dataset.id;
+        if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {
+            const id = e.target.closest('.delete-btn').dataset.id;
             fetch(`/api/transactions/${id}`, {
                 method: 'DELETE',
             })
@@ -130,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
     saveButton.addEventListener('click', () => {
         const defaultFilename = 'transactions.json';
         const filename = prompt('Enter a filename for saving transactions:', defaultFilename) || defaultFilename;
-        lastUsedDirectory = filename.substring(0, filename.lastIndexOf('/') + 1);
         fetch('/api/transactions')
             .then(response => response.json())
             .then(transactions => {
@@ -151,10 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'application/json';
-        if (lastUsedDirectory) {
-            input.webkitdirectory = true;
-            input.directory = lastUsedDirectory;
-        }
+        input.webkitdirectory = true;
+        input.directory = '/Downloads';
         input.onchange = (event) => {
             const file = event.target.files[0];
             const reader = new FileReader();
@@ -232,6 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error creating chart:', error);
         }
     }
+
+    // New transaction button
+    newButton.addEventListener('click', () => {
+        transactionForm.reset();
+        editingId = null;
+        addButton.textContent = 'Add Transaction';
+    });
 
     // Initial fetch
     fetchTransactions().then(() => {
