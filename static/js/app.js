@@ -11,9 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveButton = document.getElementById('save-transactions');
     const loadButton = document.getElementById('load-transactions');
     const spendingChart = document.getElementById('spending-chart');
+    const categoryChart = document.getElementById('category-chart');
     const newButton = document.getElementById('new-transaction');
     let editingId = null;
-    let chart = null;
+    let lineChart = null;
+    let pieChart = null;
 
     // Fetch and display transactions
     function fetchTransactions() {
@@ -38,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     transactionList.appendChild(dateGroup);
                 });
                 document.getElementById('monthly-total').textContent = `$${totalSpending.toFixed(2)}`;
-                updateChart(groupedTransactions);
+                updateCharts(groupedTransactions, transactions);
             });
     }
 
@@ -198,32 +200,32 @@ document.addEventListener('DOMContentLoaded', () => {
         input.click();
     });
 
-    // Update chart
-    function updateChart(groupedTransactions) {
-        console.log('Updating chart with data:', groupedTransactions);
+    // Update charts
+    function updateCharts(groupedTransactions, allTransactions) {
+        console.log('Updating charts with data:', groupedTransactions);
+        updateLineChart(groupedTransactions);
+        updatePieChart(allTransactions);
+    }
+
+    function updateLineChart(groupedTransactions) {
         const dates = Object.keys(groupedTransactions);
         const amounts = dates.map(date => 
             groupedTransactions[date].reduce((sum, transaction) => sum + transaction.amount, 0)
         );
 
-        if (chart) {
-            chart.data.labels = dates;
-            chart.data.datasets[0].data = amounts;
-            chart.update();
+        if (lineChart) {
+            lineChart.data.labels = dates;
+            lineChart.data.datasets[0].data = amounts;
+            lineChart.update();
         } else {
-            initChart(dates, amounts);
+            initLineChart(dates, amounts);
         }
     }
 
-    function initChart(dates, amounts) {
-        console.log('Initializing chart with dates:', dates, 'and amounts:', amounts);
-        const canvas = document.getElementById('spending-chart');
-        if (!canvas) {
-            console.error('Spending chart canvas not found');
-            return;
-        }
-        const ctx = canvas.getContext('2d');
-        chart = new Chart(ctx, {
+    function initLineChart(dates, amounts) {
+        console.log('Initializing line chart with dates:', dates, 'and amounts:', amounts);
+        const ctx = document.getElementById('spending-chart').getContext('2d');
+        lineChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: dates,
@@ -249,6 +251,63 @@ document.addEventListener('DOMContentLoaded', () => {
                             display: true,
                             text: 'Date'
                         }
+                    }
+                }
+            }
+        });
+    }
+
+    function updatePieChart(transactions) {
+        const categories = {};
+        transactions.forEach(transaction => {
+            const category = transaction.name.split(' ')[0]; // Simple categorization based on first word
+            if (categories[category]) {
+                categories[category] += transaction.amount;
+            } else {
+                categories[category] = transaction.amount;
+            }
+        });
+
+        const labels = Object.keys(categories);
+        const data = Object.values(categories);
+
+        if (pieChart) {
+            pieChart.data.labels = labels;
+            pieChart.data.datasets[0].data = data;
+            pieChart.update();
+        } else {
+            initPieChart(labels, data);
+        }
+    }
+
+    function initPieChart(labels, data) {
+        console.log('Initializing pie chart with labels:', labels, 'and data:', data);
+        const ctx = document.getElementById('category-chart').getContext('2d');
+        pieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 205, 86)',
+                        'rgb(75, 192, 192)',
+                        'rgb(153, 102, 255)',
+                        'rgb(255, 159, 64)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Spending by Category'
                     }
                 }
             }

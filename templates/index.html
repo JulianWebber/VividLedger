@@ -55,10 +55,18 @@
     </div>
 </div>
 
-<div class="mt-8">
-    <h2 class="text-2xl font-bold mb-4">Spending Chart</h2>
-    <div class="bg-white shadow-md rounded p-4">
-        <canvas id="spending-chart"></canvas>
+<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div>
+        <h2 class="text-2xl font-bold mb-4">Daily Spending Chart</h2>
+        <div class="bg-white shadow-md rounded p-4">
+            <canvas id="spending-chart"></canvas>
+        </div>
+    </div>
+    <div>
+        <h2 class="text-2xl font-bold mb-4">Spending by Category</h2>
+        <div class="bg-white shadow-md rounded p-4">
+            <canvas id="category-chart"></canvas>
+        </div>
     </div>
 </div>
 {% endblock %}
