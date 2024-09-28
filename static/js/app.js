@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and display transactions
     function fetchTransactions() {
+        console.log('Fetching transactions...');
         return fetch('/api/transactions')
             .then(response => response.json())
             .then(transactions => {
