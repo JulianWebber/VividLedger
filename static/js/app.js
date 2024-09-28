@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
                 <p class="text-green-600 font-bold">$${transaction.amount.toFixed(2)}</p>
                 <div class="button-container">
-                    <button class="btn btn-blue edit-btn" data-id="${transaction.id}">
+                    <button class="btn btn-purple edit-btn" data-id="${transaction.id}">
                         <i class="fas fa-edit"></i> Edit
                     </button>
                     <button class="btn btn-red delete-btn" data-id="${transaction.id}">
@@ -316,9 +316,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // New Ledger button
     newButton.addEventListener('click', () => {
-        transactionForm.reset();
-        editingId = null;
-        addButton.textContent = 'Add Transaction';
+        if (confirm('Are you sure you want to start a new ledger? This will clear all current transactions.')) {
+            fetch('/api/transactions', { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        return fetchTransactions();
+                    } else {
+                        throw new Error('Failed to clear transactions');
+                    }
+                })
+                .then(() => {
+                    transactionForm.reset();
+                    editingId = null;
+                    addButton.textContent = 'Add Transaction';
+                    alert('New ledger started. All transactions have been cleared.');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to clear transactions');
+                });
+        }
     });
 
     // Initial fetch

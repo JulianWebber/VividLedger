@@ -21,6 +21,12 @@
 .btn-green:hover {
     @apply bg-green-700;
 }
+.btn-purple {
+    @apply bg-purple-500 text-white;
+}
+.btn-purple:hover {
+    @apply bg-purple-700;
+}
 
 .transaction-btn {
     border: 2px solid #4a5568;
@@ -48,7 +54,7 @@
 }
 
 #new-transaction {
-    @apply bg-red-500 text-white;
+    @apply bg-red-500 text-white border-2 border-red-700;
     font-size: 1rem;
 }
 

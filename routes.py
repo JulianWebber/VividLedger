@@ -69,3 +69,14 @@ def bulk_import_transactions():
         db.session.add(new_transaction)
     db.session.commit()
     return jsonify({'message': 'Transactions imported successfully'}), 201
+
+@main.route('/api/transactions', methods=['DELETE'])
+@login_required
+def clear_transactions():
+    try:
+        Transaction.query.filter_by(user_id=current_user.id).delete()
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
