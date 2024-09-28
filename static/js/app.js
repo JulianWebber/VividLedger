@@ -102,12 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit transaction
     transactionList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
-            const id = e.target.closest('.edit-btn').dataset.id;
-            const transactionElement = e.target.closest('div');
-            const name = transactionElement.querySelector('p').textContent;
-            const amount = transactionElement.querySelector('p:nth-child(2)').textContent.slice(1);
-            const date = transactionElement.closest('div').querySelector('h3').textContent;
+        const editBtn = e.target.closest('.edit-btn');
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const transactionElement = editBtn.closest('.flex');
+            const name = transactionElement.querySelector('.font-bold.text-blue-600').textContent;
+            const date = transactionElement.querySelector('.text-gray-600').textContent;
+            const amount = transactionElement.querySelector('.text-green-600.font-bold').textContent.slice(1);
 
             dateInput.value = date;
             nameInput.value = name;
@@ -119,14 +120,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Delete transaction
     transactionList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {
-            const id = e.target.closest('.delete-btn').dataset.id;
-            fetch(`/api/transactions/${id}`, {
-                method: 'DELETE',
-            })
-            .then(() => {
-                fetchTransactions();
-            });
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                fetch(`/api/transactions/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(() => {
+                    fetchTransactions();
+                });
+            }
         }
     });
 
@@ -154,8 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'application/json';
-        input.webkitdirectory = true;
-        input.directory = '/Downloads';
         input.onchange = (event) => {
             const file = event.target.files[0];
             const reader = new FileReader();
@@ -168,8 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify(transactions),
                 })
+                .then(response => {
+                    if (response.ok) {
+                        return fetchTransactions();
+                    } else {
+                        throw new Error('Failed to load transactions');
+                    }
+                })
                 .then(() => {
-                    fetchTransactions();
+                    alert('Transactions loaded successfully');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load transactions');
                 });
             };
             reader.readAsText(file);
@@ -184,54 +197,47 @@ document.addEventListener('DOMContentLoaded', () => {
             groupedTransactions[date].reduce((sum, transaction) => sum + transaction.amount, 0)
         );
 
-        initChart(dates, amounts);
+        if (chart) {
+            chart.data.labels = dates;
+            chart.data.datasets[0].data = amounts;
+            chart.update();
+        } else {
+            initChart(dates, amounts);
+        }
     }
 
     function initChart(dates, amounts) {
-        const canvas = document.getElementById('spending-chart');
-        if (!canvas) {
-            console.error('Spending chart canvas not found');
-            return;
-        }
-
-        if (chart) {
-            chart.destroy();
-        }
-
-        try {
-            chart = new Chart(canvas.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Daily Spending',
-                        data: amounts,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Amount ($)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
+        const ctx = document.getElementById('spending-chart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Daily Spending',
+                    data: amounts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Amount ($)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
                         }
                     }
                 }
-            });
-        } catch (error) {
-            console.error('Error creating chart:', error);
-        }
+            }
+        });
     }
 
     // New transaction button
@@ -242,7 +248,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initial fetch
-    fetchTransactions().then(() => {
-        initChart([], []);
-    });
+    fetchTransactions();
 });
