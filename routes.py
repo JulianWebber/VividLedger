@@ -54,3 +54,18 @@ def delete_transaction(id):
     db.session.delete(transaction)
     db.session.commit()
     return '', 204
+
+@main.route('/api/transactions/bulk', methods=['POST'])
+@login_required
+def bulk_import_transactions():
+    transactions = request.json
+    for transaction_data in transactions:
+        new_transaction = Transaction(
+            date=transaction_data['date'],
+            name=transaction_data['name'],
+            amount=transaction_data['amount'],
+            user_id=current_user.id
+        )
+        db.session.add(new_transaction)
+    db.session.commit()
+    return jsonify({'message': 'Transactions imported successfully'}), 201

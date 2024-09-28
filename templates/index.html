@@ -33,9 +33,27 @@
 
     <div>
         <h2 class="text-2xl font-bold mb-4">Transactions</h2>
-        <div id="transaction-list" class="bg-white shadow-md rounded px-8 pt-6 pb-8">
-            <!-- Transactions will be dynamically added here -->
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h3 class="text-xl font-bold mb-2">Monthly Total: <span id="monthly-total" class="text-green-600">$0.00</span></h3>
+            <div id="transaction-list">
+                <!-- Transactions will be dynamically added here -->
+            </div>
+        </div>
+        <div class="flex justify-between mb-4">
+            <button id="save-transactions" class="btn btn-blue">Save Transactions</button>
+            <button id="load-transactions" class="btn btn-blue">Load Transactions</button>
         </div>
     </div>
 </div>
+
+<div class="mt-8">
+    <h2 class="text-2xl font-bold mb-4">Spending Chart</h2>
+    <div class="bg-white shadow-md rounded p-4">
+        <canvas id="spending-chart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
