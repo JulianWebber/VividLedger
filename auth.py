@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, flash, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
 from models import User
@@ -19,14 +19,16 @@ def register():
 
         user = User.query.filter_by(email=email).first()
         if user:
-            return jsonify({'error': 'Email already exists'}), 400
+            flash('Email already exists', 'error')
+            return redirect(url_for('auth.register'))
 
         new_user = User(username=username, email=email)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
 
-        return jsonify({'message': 'Registered successfully'}), 201
+        flash('Registration successful. You can now log in.', 'success')
+        return redirect(url_for('auth.login'))
     return render_template('register.html')
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -38,14 +40,17 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if not user or not user.check_password(password):
-            return jsonify({'error': 'Please check your login details and try again.'}), 401
+            flash('Please check your login details and try again.', 'error')
+            return redirect(url_for('auth.login'))
 
         login_user(user, remember=remember)
-        return jsonify({'message': 'Logged in successfully'}), 200
+        flash('Logged in successfully', 'success')
+        return redirect(url_for('main.index'))
     return render_template('login.html')
 
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return jsonify({'message': 'Logged out successfully'}), 200
+    flash('Logged out successfully', 'success')
+    return redirect(url_for('auth.login'))
