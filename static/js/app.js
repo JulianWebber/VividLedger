@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const spendingChart = document.getElementById('spending-chart');
     let editingId = null;
     let chart = null;
+    let lastUsedDirectory = '';
 
     // Fetch and display transactions
     function fetchTransactions() {
@@ -129,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveButton.addEventListener('click', () => {
         const defaultFilename = 'transactions.json';
         const filename = prompt('Enter a filename for saving transactions:', defaultFilename) || defaultFilename;
+        lastUsedDirectory = filename.substring(0, filename.lastIndexOf('/') + 1);
         fetch('/api/transactions')
             .then(response => response.json())
             .then(transactions => {
@@ -149,6 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'application/json';
+        if (lastUsedDirectory) {
+            input.webkitdirectory = true;
+            input.directory = lastUsedDirectory;
+        }
         input.onchange = (event) => {
             const file = event.target.files[0];
             const reader = new FileReader();
