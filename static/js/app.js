@@ -65,12 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div>
                 <p class="text-green-600 font-bold">$${transaction.amount.toFixed(2)}</p>
-                <button class="btn btn-blue edit-btn" data-id="${transaction.id}">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn btn-red delete-btn" data-id="${transaction.id}">
-                    <i class="fas fa-trash-alt"></i> Delete
-                </button>
+                <div class="button-container">
+                    <button class="btn btn-blue edit-btn" data-id="${transaction.id}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-red delete-btn" data-id="${transaction.id}">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
             </div>
         `;
         return element;
@@ -253,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // New transaction button
+    // New Ledger button
     newButton.addEventListener('click', () => {
         transactionForm.reset();
         editingId = null;
