@@ -3,8 +3,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
 from models import User
 from app import db, login_manager
+import logging
 
 auth = Blueprint('auth', __name__)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -27,6 +31,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        logger.info(f"New user registered: {username} ({email})")
         flash('Registration successful. You can now log in.', 'success')
         return redirect(url_for('auth.login'))
     return render_template('register.html')
@@ -44,6 +49,7 @@ def login():
             return redirect(url_for('auth.login'))
 
         login_user(user, remember=remember)
+        logger.info(f"User logged in: {user.username} ({user.email})")
         flash('Logged in successfully', 'success')
         return redirect(url_for('main.index'))
     return render_template('login.html')
