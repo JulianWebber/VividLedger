@@ -23,7 +23,8 @@ def register():
 
         user = User.query.filter_by(email=email).first()
         if user:
-            flash('Email already exists', 'error')
+            logger.warning(f'Registration attempt with existing email: {email}')
+            flash('Email already exists. Please use a different email or try logging in.', 'error')
             return redirect(url_for('auth.register'))
 
         new_user = User(username=username, email=email)
@@ -45,7 +46,8 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if not user or not user.check_password(password):
-            flash('Please check your login details and try again.', 'error')
+            logger.warning(f'Failed login attempt for email: {email}')
+            flash('Invalid email or password. Please try again.', 'error')
             return redirect(url_for('auth.login'))
 
         login_user(user, remember=remember)
