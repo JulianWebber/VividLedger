@@ -7,13 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const addButton = document.getElementById('add-transaction');
     const saveButton = document.getElementById('save-transactions');
     const loadButton = document.getElementById('load-transactions');
-    const spendingChart = document.getElementById('spending-chart').getContext('2d');
+    const spendingChart = document.getElementById('spending-chart');
     let editingId = null;
     let chart = null;
 
     // Fetch and display transactions
     function fetchTransactions() {
-        fetch('/api/transactions')
+        return fetch('/api/transactions')
             .then(response => response.json())
             .then(transactions => {
                 transactionList.innerHTML = '';
@@ -127,6 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save transactions
     saveButton.addEventListener('click', () => {
+        const defaultFilename = 'transactions.json';
+        const filename = prompt('Enter a filename for saving transactions:', defaultFilename) || defaultFilename;
         fetch('/api/transactions')
             .then(response => response.json())
             .then(transactions => {
@@ -134,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'transactions.json';
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -175,42 +177,58 @@ document.addEventListener('DOMContentLoaded', () => {
             groupedTransactions[date].reduce((sum, transaction) => sum + transaction.amount, 0)
         );
 
+        initChart(dates, amounts);
+    }
+
+    function initChart(dates, amounts) {
+        const canvas = document.getElementById('spending-chart');
+        if (!canvas) {
+            console.error('Spending chart canvas not found');
+            return;
+        }
+
         if (chart) {
             chart.destroy();
         }
 
-        chart = new Chart(spendingChart, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: 'Daily Spending',
-                    data: amounts,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Amount ($)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
+        try {
+            chart = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Daily Spending',
+                        data: amounts,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount ($)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error creating chart:', error);
+        }
     }
 
     // Initial fetch
-    fetchTransactions();
+    fetchTransactions().then(() => {
+        initChart([], []);
+    });
 });

@@ -40,8 +40,12 @@
             </div>
         </div>
         <div class="flex justify-between mb-4">
-            <button id="save-transactions" class="btn btn-blue">Save Transactions</button>
-            <button id="load-transactions" class="btn btn-blue">Load Transactions</button>
+            <button id="save-transactions" class="btn btn-blue transaction-btn">
+                <i class="fas fa-save"></i> Save Transactions
+            </button>
+            <button id="load-transactions" class="btn btn-blue transaction-btn">
+                <i class="fas fa-upload"></i> Load Transactions
+            </button>
         </div>
     </div>
 </div>
@@ -56,4 +60,5 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 {% endblock %}
