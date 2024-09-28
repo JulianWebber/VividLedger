@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lineChart = null;
     let pieChart = null;
 
-    // Fetch and display transactions
     function fetchTransactions() {
         console.log('Fetching transactions...');
         return fetch('/api/transactions')
@@ -44,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // Group transactions by date
     function groupTransactionsByDate(transactions) {
         return transactions.reduce((groups, transaction) => {
             const date = transaction.date;
@@ -56,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, {});
     }
 
-    // Create transaction element
     function createTransactionElement(transaction) {
         const element = document.createElement('div');
         element.classList.add('flex', 'justify-between', 'items-center', 'bg-white', 'p-4', 'rounded-lg', 'shadow', 'mb-2');
@@ -80,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return element;
     }
 
-    // Add or update transaction
     transactionForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const transaction = {
@@ -108,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Edit transaction
     transactionList.addEventListener('click', (e) => {
         const editBtn = e.target.closest('.edit-btn');
         if (editBtn) {
@@ -126,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Delete transaction
     transactionList.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.delete-btn');
         if (deleteBtn) {
@@ -142,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Save transactions
     saveButton.addEventListener('click', () => {
         const defaultFilename = 'transactions.json';
         const filename = prompt('Enter a filename for saving transactions:', defaultFilename) || defaultFilename;
@@ -161,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // Load transactions
     loadButton.addEventListener('click', () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -200,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
         input.click();
     });
 
-    // Update charts
     function updateCharts(groupedTransactions, allTransactions) {
         console.log('Updating charts with data:', groupedTransactions);
         updateLineChart(groupedTransactions);
@@ -260,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePieChart(transactions) {
         const categories = {};
         transactions.forEach(transaction => {
-            const category = transaction.name.split(' ')[0]; // Simple categorization based on first word
+            const category = transaction.name.split(' ')[0];
             if (categories[category]) {
                 categories[category] += transaction.amount;
             } else {
@@ -314,7 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // New Ledger button
     newButton.addEventListener('click', () => {
         if (confirm('Are you sure you want to start a new ledger? This will clear all current transactions.')) {
             fetch('/api/transactions', { method: 'DELETE' })
@@ -322,7 +312,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (response.ok) {
                         return fetchTransactions();
                     } else {
-                        throw new Error('Failed to clear transactions');
+                        return response.text().then(text => {
+                            throw new Error('Failed to clear transactions: ' + text);
+                        });
                     }
                 })
                 .then(() => {
@@ -333,11 +325,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Failed to clear transactions');
+                    alert('Failed to clear transactions: ' + error.message);
                 });
         }
     });
 
-    // Initial fetch
     fetchTransactions();
 });

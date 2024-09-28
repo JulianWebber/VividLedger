@@ -79,4 +79,5 @@ def clear_transactions():
         return '', 204
     except Exception as e:
         db.session.rollback()
+        print(f"Error clearing transactions: {str(e)}")
         return jsonify({'error': str(e)}), 500
